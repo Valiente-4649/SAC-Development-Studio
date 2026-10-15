@@ -18,6 +18,8 @@ function applySeriesValues(file,targetId,withRecipe=true){
  const sourceId=baseline(file,targetId);if(!sourceId||sourceId===targetId)return false;
  const src=data[file]?.[sourceId],dest=data[file]?.[targetId];if(!src||!dest)return false;
  if(Object.hasOwn(src,'price'))dest.price=src.price;
+ // 武器の装備要求レベルも、同シリーズの片手剣を基準に統一する。
+ if(file==='weapons.json'&&Object.hasOwn(src,'requires'))dest.requires=clone(src.requires);
  if(Object.hasOwn(src,'sellPrice')&&Object.hasOwn(dest,'sellPrice'))dest.sellPrice=src.sellPrice;
  if(!withRecipe)return true;
  const sourceRecipe=recipeFor(file,sourceId);if(!sourceRecipe)return true;
@@ -38,11 +40,11 @@ function propagateSeries(file,sourceId){
 function drawSeriesPanel(root){
  if(!equipmentFile()||!selected)return;
  const source=baseline(current,selected),section=document.createElement('section');section.className='forge-panel';
- const title=document.createElement('h3');title.textContent='🔗 同シリーズの価格・素材・鍛造設定';section.append(title);
+ const title=document.createElement('h3');title.textContent='🔗 同シリーズの価格・必要レベル・素材・鍛造設定';section.append(title);
  const info=document.createElement('p');info.className='hint';
- info.textContent=source?(source===selected?'この装備はシリーズの基準です。価格・鍛造費用・打撃回数・主素材IDと数量・追加素材一式の変更を同シリーズへ自動反映します。':'基準: '+source+'。価格・打撃回数に加え、主素材ID・数量と追加素材ID・数量も基準に合わせられます。'):'このIDに対応する基準装備は未登録です。';section.append(info);
+ info.textContent=source?(source===selected?'この装備はシリーズの基準です。価格・必要レベル（武器）・鍛造費用・打撃回数・主素材IDと数量・追加素材一式の変更を同シリーズへ自動反映します。':'基準: '+source+'。価格・必要レベル（武器）・打撃回数に加え、主素材ID・数量と追加素材ID・数量も基準に合わせられます。'):'このIDに対応する基準装備は未登録です。';section.append(info);
  if(source){const b=document.createElement('button');b.type='button';b.textContent=source===selected?'このシリーズ全体を基準に揃える':'基準（'+source+'）から再取得';b.className='primary';b.onclick=()=>{
-  if(source===selected){if(!confirm('同シリーズの既存データを基準装備の価格・鍛造設定・素材ID・素材数で上書きしますか？'))return;propagateSeries(current,source)}
+  if(source===selected){if(!confirm('同シリーズの既存データを基準装備の価格・必要レベル（武器）・鍛造設定・素材ID・素材数で上書きしますか？'))return;propagateSeries(current,source)}
   else applySeriesValues(current,selected,true);
   save();drawEditor();drawPreview();savedStatus('✓ シリーズ設定を更新しました');
  };section.append(b)}root.append(section);
